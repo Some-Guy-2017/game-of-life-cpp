@@ -1,0 +1,25 @@
+#include <SDL2/SDL.h>
+
+#ifndef SCREEN
+#define SCREEN
+
+class Screen {
+
+public:
+	Screen(char* title, int width, int height, int cs);
+    ~Screen();
+	void draw(uint8_t* state);
+	bool update();
+
+private:
+	SDL_Window* _window;
+	SDL_Event _event;
+	SDL_Renderer* _renderer;
+	SDL_Texture* _texture;
+	int _width;
+	int _height;
+	int _cell_size;
+	char* _pixel_data;
+};
+
+#endif

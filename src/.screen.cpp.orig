@@ -1,0 +1,68 @@
+#include <iostream>
+#include <SDL2/SDL.h>
+#include "screen.hpp"
+using std::cout;
+using std::endl;
+
+Screen::Screen(char* title, int width, int height, int cell_size) {
+
+	_width = width;
+	_height = height;
+	_cell_size = cell_size;
+	_fast_mode = (_cell_size == 1);
+	//_fast_mode = 0;
+
+	_pixel_data = new char[_width*_height*4];
+	for (int i=0;i<_width*_height*4;i++) _pixel_data[i] = 0;
+
+	// init the window
+	SDL_Init(SDL_INIT_VIDEO);
+	_window = SDL_CreateWindow(title,100,100,_width,_height,0);
+	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, std::to_string(_cell_size).c_str());
+	_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, _width, _height);
+}
+
+void Screen::draw(uint8_t* state) {
+	SDL_Rect rect;
+	rect.w = _cell_size;
+	rect.h = _cell_size;
+    for (int i=0;i<_width*_height/_cell_size/_cell_size;i++) {
+		char color = 0;
+		int pi = 4*i;
+		if (state[i] & 0x1) color = 0xFF;
+
+		if (_fast_mode) {
+			_pixel_data[pi  ] = color;
+			_pixel_data[pi+1] = color;
+			_pixel_data[pi+2] = color;
+			_pixel_data[pi+3] = color;
+
+		} else {
+			rect.x = (i%(_width/_cell_size))*_cell_size;
+			rect.y = (i/(_width/_cell_size))*_cell_size;
+			SDL_SetRenderDrawColor(_renderer, color, color, color, color);
+			SDL_RenderFillRect(_renderer, &rect);
+		}
+	}
+}
+
+bool Screen::update() {
+
+	if (_fast_mode) {
+		SDL_UpdateTexture(_texture, nullptr, _pixel_data, _width*4);
+		SDL_RenderCopy(_renderer, _texture, nullptr, nullptr);
+	}
+	SDL_RenderPresent(_renderer);
+
+	if (SDL_QuitRequested()) return 1;
+	return 0;
+}
+
+Screen::~Screen() {
+	SDL_DestroyTexture(_texture);
+	SDL_DestroyRenderer(_renderer);
+	SDL_DestroyWindow(_window);
+
+	SDL_Quit();
+}
