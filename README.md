@@ -1,4 +1,4 @@
-# game-of-life-cpp - An implementation of Conway's Game of Life in c++
+# Game-of-Life-cpp - An implementation of Conway's Game of Life in c++
 
 This demonstration was made using [SDL2](https://www.libsdl.org/)
 
